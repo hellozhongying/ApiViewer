@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ApiViewer request list viewport fixture</title>
+    <link rel="stylesheet" href="../sidepanel.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M2.6 12s3.5-5.2 9.4-5.2 9.4 5.2 9.4 5.2-3.5 5.2-9.4 5.2S2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="3.1" class="logo-iris"/><circle cx="12" cy="12" r="1.25" class="logo-pupil"/></svg>
+          </span>
+          <span class="brand-copy"><strong>ApiViewer</strong><code>www.example.test/device/list</code></span>
+        </div>
+      </header>
+
+      <section class="request-tools" aria-label="请求筛选">
+        <label class="search-box"><span class="sr-only">搜索请求</span><input placeholder="搜索路径、状态码或方法" /></label>
+        <div class="filter-tabs"><button class="filter-tab active">全部</button><button class="filter-tab">XHR</button><button class="filter-tab">Fetch</button></div>
+      </section>
+
+      <section class="request-list" aria-label="请求列表">
+        <div class="request-list-header"><span>序号</span><span>方法</span><span>请求路径</span><span>状态</span><span>耗时</span></div>
+        <div class="request-rows" role="listbox">
+          <button class="request-row" role="option"><span class="sequence">1</span><span class="method post">POST</span><span class="path">/gateway/device/deviceConfig/frpConfig</span><span class="status-code ok">200</span><span class="duration">174 ms</span></button>
+          <button class="request-row" role="option"><span class="sequence">2</span><span class="method get">GET</span><span class="path">/gateway/sys/gptData?_t=1787969371</span><span class="status-code ok">200</span><span class="duration">26 ms</span></button>
+          <button class="request-row selected" role="option" aria-selected="true"><span class="sequence">3</span><span class="method post">POST</span><span class="path">/gateway/device/list</span><span class="status-code ok">200</span><span class="duration">176 ms</span></button>
+        </div>
+      </section>
+
+      <section class="request-detail" aria-label="请求详情">
+        <div class="detail-heading has-selection">
+          <div class="detail-endpoint"><span class="method-chip post">POST</span><code>/gateway/device/list</code></div>
+          <div class="detail-meta"><span class="ok">200 OK</span><span>176 ms</span><span>1.9 KB</span></div>
+        </div>
+        <div class="detail-tabs"><button aria-selected="true">概览</button><button>请求头</button><button>请求</button><button>响应</button></div>
+        <div class="code-wrap"><div class="code-panel"><div class="code-toolbar"><span class="format">概览 · JSON</span></div><pre id="detailContent">{
+  "url": "https://www.example.test/gateway/device/list",
+  "method": "POST",
+  "status": 200
+}</pre></div></div>
+      </section>
+
+      <footer class="action-bar">
+        <button class="action-button primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M18.2 16a7 7 0 1 1 .8-7.8L20 12"/></svg>编辑并重发</button>
+        <button class="action-button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/></svg>复制 cURL</button>
+        <button class="action-button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/></svg><span class="action-label">复制请求 JSON</span></button>
+        <button class="action-button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/></svg>复制响应 JSON</button>
+      </footer>
+    </main>
+  </body>
+</html>

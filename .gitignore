@@ -1,0 +1,6 @@
+.DS_Store
+release/*.zip
+work/
+outputs/
+*.pem
+*.crx

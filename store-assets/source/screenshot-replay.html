@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>ApiViewer 请求重放</title><link rel="stylesheet" href="store-shot.css" /></head>
+  <body>
+    <main class="browser">
+      <header class="browser-bar"><span class="browser-dots"><i></i><i></i><i></i></span><div class="address">https://example.test/api/device/update</div></header>
+      <div class="browser-body">
+        <section class="context">
+          <span class="eyebrow">EDIT · REPLAY · INSPECT</span>
+          <h1>复制一份请求，安全确认后再发送</h1>
+          <p>修改 Method、URL、查询参数、请求头和请求体，并在当前页面上下文中查看重放结果。</p>
+          <div class="feature-row"><span>参数开关</span><span>请求头编辑</span><span>当前登录态</span></div>
+          <div class="privacy-note"><i>✓</i>只有点击“发送请求”后才会访问目标接口</div>
+        </section>
+        <div class="panel-wrap"><iframe class="panel-frame" src="../../tests/replay-viewport.html" title="ApiViewer 请求重放"></iframe></div>
+      </div>
+    </main>
+  </body>
+</html>

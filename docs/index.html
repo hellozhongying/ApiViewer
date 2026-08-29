@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>ApiViewer 隐私政策</title>
+    <link rel="stylesheet" href="privacy.css" />
+  </head>
+  <body>
+    <main class="policy-shell">
+      <header class="policy-header">
+        <img src="icons/icon-128.png" width="56" height="56" alt="ApiViewer 图标" />
+        <div>
+          <span>ApiViewer</span>
+          <h1>隐私政策</h1>
+          <p>生效日期：2026 年 8 月 29 日 · 版本 1.0</p>
+        </div>
+      </header>
+
+      <aside class="policy-summary" aria-label="隐私摘要">
+        <strong>简要说明</strong>
+        <p>ApiViewer 仅在用户主动打开侧边栏并明确同意后，读取当前标签页的 Fetch / XHR 网络请求。捕获记录只在浏览器运行内存中处理，不会上传到 ApiViewer 开发者控制的服务器，关闭侧边栏后即被清除。</p>
+      </aside>
+
+      <section>
+        <h2>1. 适用范围</h2>
+        <p>本政策适用于 Chrome 扩展程序 ApiViewer（以下简称“本扩展”）。本扩展的单一用途是帮助用户检查、复制和重放当前标签页的 Fetch / XHR 网络请求。</p>
+      </section>
+
+      <section>
+        <h2>2. 本扩展处理的数据</h2>
+        <p>为提供上述功能，本扩展可能处理以下数据：</p>
+        <ul>
+          <li>当前标签页的网页地址和标题；</li>
+          <li>Fetch / XHR 请求的 URL、HTTP 方法、状态码、耗时及大小；</li>
+          <li>请求头、响应头、请求体和响应体；</li>
+          <li>请求中可能包含的 Cookie、Authorization 标头或其他认证信息；</li>
+          <li>用户在重放编辑器中输入或修改的 URL、参数、标头和请求体；</li>
+          <li>用户设置，例如最大请求数量、最大响应体大小和是否自动开始捕获。</li>
+        </ul>
+        <p>请求和响应内容由用户访问的网站产生，可能包含个人身份信息、表单数据、个人通信、支付信息、健康信息或其他敏感内容。本扩展不会主动判断或分类这些内容。</p>
+      </section>
+
+      <section>
+        <h2>3. 数据用途</h2>
+        <p>上述数据仅用于向用户提供本扩展明确展示的功能，包括：</p>
+        <ul>
+          <li>在侧边栏显示当前标签页的 Fetch / XHR 请求及详情；</li>
+          <li>搜索、筛选、格式化和复制捕获内容；</li>
+          <li>生成 cURL，以及在用户明确操作后复制到剪贴板；</li>
+          <li>按照用户编辑的内容向用户指定的目标网站重放请求；</li>
+          <li>在本机保存用户设置。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>4. 本地处理、存储和保留期限</h2>
+        <ul>
+          <li>捕获到的网络请求和响应仅保存在扩展运行内存中，不写入持久化存储；</li>
+          <li>关闭 ApiViewer 侧边栏后，扩展会解除调试连接并清除当前捕获会话；</li>
+          <li>用户设置和隐私授权记录保存在浏览器的 <code>chrome.storage.local</code> 中，直至用户清除扩展数据或卸载本扩展；</li>
+          <li>本扩展不使用分析、遥测、广告或跨站追踪服务。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>5. 数据传输和共享</h2>
+        <p>本扩展不会把捕获内容上传、出售、出租或共享给 ApiViewer 开发者、广告商、数据经纪商或其他第三方。</p>
+        <p>当用户主动使用“编辑并重发”功能时，本扩展会在当前页面上下文中，将用户确认的请求内容发送到用户填写的目标 URL。该传输属于用户主动要求的网络请求，并受目标网站自身隐私政策约束。用户主动复制内容后，数据将进入系统剪贴板，并由用户自行决定后续用途。</p>
+      </section>
+
+      <section>
+        <h2>6. 权限说明</h2>
+        <dl>
+          <dt><code>debugger</code></dt><dd>仅在侧边栏打开且用户已授权时，通过 Chrome DevTools Protocol 读取当前标签页的 Fetch / XHR；关闭侧边栏后断开。</dd>
+          <dt><code>sidePanel</code></dt><dd>在 Chrome 原生侧边栏中展示本扩展界面。</dd>
+          <dt><code>tabs</code></dt><dd>识别当前活动标签页、显示地址和标题，并在用户切换标签页时更新检查目标。</dd>
+          <dt><code>storage</code></dt><dd>仅在本机保存扩展设置和隐私授权记录。</dd>
+          <dt><code>clipboardWrite</code></dt><dd>仅在用户点击复制按钮后写入剪贴板。</dd>
+        </dl>
+      </section>
+
+      <section>
+        <h2>7. 数据安全和用户控制</h2>
+        <p>本扩展采用 Manifest V3，不下载或执行远程代码。用户可以随时暂停捕获、清空当前记录、关闭侧边栏、清除扩展存储或卸载本扩展。复制的 cURL、请求头或正文可能包含敏感信息，请勿分享给不受信任的人。</p>
+      </section>
+
+      <section>
+        <h2>8. Chrome Web Store Limited Use</h2>
+        <p>本扩展对通过 Chrome 扩展 API 获得的数据的使用，遵守 Chrome Web Store 用户数据政策及其 Limited Use（有限使用）要求。数据只用于提供或改进本扩展公开说明的单一用途，不用于个性化广告、信用评估、数据转售或与单一用途无关的用户画像。</p>
+      </section>
+
+      <section>
+        <h2>9. 政策变更</h2>
+        <p>如果数据处理方式发生实质变化，我们会在收集或使用相关数据前，通过扩展界面向用户显著披露变化并重新取得必要的明确同意，同时更新本政策的生效日期。</p>
+      </section>
+
+      <section>
+        <h2>10. 联系方式</h2>
+        <p>发布者：<strong>hellozhongying</strong></p>
+        <p>支持邮箱：<a href="mailto:hellozhongying@gmail.com">hellozhongying@gmail.com</a></p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ApiViewer long replay response fixture</title>
+    <link rel="stylesheet" href="../sidepanel.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="replay-view" aria-label="请求重放编辑器">
+        <header class="replay-header">
+          <button class="icon-button replay-back" type="button" aria-label="返回请求详情">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="replay-title">
+            <strong>编辑并重发</strong>
+            <code>/gateway/device/list</code>
+          </div>
+          <span class="replay-context-badge">当前页面</span>
+        </header>
+        <div class="replay-request-line">
+          <label class="replay-method-field"><span class="sr-only">请求方法</span><select><option>POST</option></select></label>
+          <label class="replay-url-field"><span class="sr-only">请求 URL</span><input value="https://example.test/gateway/device/list" /></label>
+          <p class="field-error hidden"></p>
+        </div>
+        <div class="replay-tabs" role="tablist">
+          <button type="button" role="tab" aria-selected="false">参数 <span>0</span></button>
+          <button type="button" role="tab" aria-selected="false">请求头 <span>6</span></button>
+          <button type="button" role="tab" aria-selected="false">请求体</button>
+          <button type="button" role="tab" aria-selected="true">响应</button>
+        </div>
+        <div class="replay-error-summary hidden"></div>
+        <div class="replay-editor-panel response-mode">
+          <section class="editor-section response-section">
+            <div class="response-summary">
+              <div class="response-stat"><span>状态</span><strong class="ok">200 OK</strong></div>
+              <div class="response-stat"><span>耗时</span><strong>342 ms</strong></div>
+              <div class="response-stat"><span>大小</span><strong>128 KB</strong></div>
+            </div>
+            <div class="response-toolbar"><button class="active">响应体</button><button>响应头</button><button>概览</button><button>复制当前内容</button></div>
+            <pre class="response-code">{
+  "success": true,
+  "records": [
+    { "id": 1, "name": "Device 1", "status": "ONLINE" },
+    { "id": 2, "name": "Device 2", "status": "ONLINE" },
+    { "id": 3, "name": "Device 3", "status": "OFFLINE" },
+    { "id": 4, "name": "Device 4", "status": "ONLINE" },
+    { "id": 5, "name": "Device 5", "status": "ONLINE" },
+    { "id": 6, "name": "Device 6", "status": "OFFLINE" },
+    { "id": 7, "name": "Device 7", "status": "ONLINE" },
+    { "id": 8, "name": "Device 8", "status": "ONLINE" },
+    { "id": 9, "name": "Device 9", "status": "OFFLINE" },
+    { "id": 10, "name": "Device 10", "status": "ONLINE" },
+    { "id": 11, "name": "Device 11", "status": "ONLINE" },
+    { "id": 12, "name": "Device 12", "status": "OFFLINE" },
+    { "id": 13, "name": "Device 13", "status": "ONLINE" },
+    { "id": 14, "name": "Device 14", "status": "ONLINE" },
+    { "id": 15, "name": "Device 15", "status": "OFFLINE" },
+    { "id": 16, "name": "Device 16", "status": "ONLINE" },
+    { "id": 17, "name": "Device 17", "status": "ONLINE" },
+    { "id": 18, "name": "Device 18", "status": "OFFLINE" },
+    { "id": 19, "name": "Device 19", "status": "ONLINE" },
+    { "id": 20, "name": "Device 20", "status": "ONLINE" }
+  ],
+  "total": 434189,
+  "pages": 43419
+}</pre>
+          </section>
+        </div>
+        <footer class="replay-action-bar">
+          <label class="credentials-switch"><input type="checkbox" checked /><span>使用当前登录态</span></label>
+          <span class="action-spacer"></span>
+          <button class="action-button" type="button">恢复原始值</button>
+          <button class="action-button primary" type="button"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/></svg><span>再次发送</span></button>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>
