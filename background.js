@@ -3,11 +3,17 @@ const SIDE_PANEL_PATH = "sidepanel.html";
 const PRIVACY_CONSENT_VERSION = 1;
 const PANEL_HEARTBEAT_TIMEOUT_MS = 1800;
 const REPLAY_TIMEOUT_MS = 30_000;
+const UI_LANGUAGE = chrome.i18n?.getUILanguage?.() || globalThis.navigator?.language || "zh-CN";
+const USE_CHINESE = /^zh(?:-|$)/i.test(UI_LANGUAGE);
 const DEFAULT_SETTINGS = Object.freeze({
   maxRequests: 250,
   maxBodyBytes: 2 * 1024 * 1024,
   autoStart: true,
 });
+
+function t(key, fallback) {
+  return (!USE_CHINESE && chrome.i18n?.getMessage?.(key)) || fallback;
+}
 
 /** @type {Map<number, {
  *   attached: boolean,
@@ -88,7 +94,7 @@ chrome.runtime.onConnect.addListener((port) => {
       currentTabId = message.tabId;
       void grantPrivacyConsent()
         .then(() => initializePanel(message.tabId, port, () => panelClosed || currentTabId !== message.tabId))
-        .catch(() => safePost(port, { type: "consent-error", error: "无法保存授权状态，请重试。" }));
+        .catch(() => safePost(port, { type: "consent-error", error: t("consent_save_error", "无法保存授权状态，请重试。") }));
       return;
     }
 
@@ -276,7 +282,7 @@ async function performDebuggerAttach(tabId, session) {
     broadcast(session, { type: "page", page: session.page });
 
     if (!isInspectableUrl(tab.url || "")) {
-      throw new Error("此页面受 Chrome 保护，无法捕获请求。请切换到普通网页后重试。");
+      throw new Error(t("protected_page", "此页面受 Chrome 保护，无法捕获请求。请切换到普通网页后重试。"));
     }
 
     await debuggerAttach({ tabId }, DEBUGGER_VERSION);
@@ -382,7 +388,7 @@ function handleNetworkEvent(tabId, session, method, params) {
     request.endTime = params.timestamp;
     request.duration = Math.max(0, (request.endTime - request.startTime) * 1000);
     request.failed = true;
-    request.errorText = params.errorText || "请求失败";
+    request.errorText = params.errorText || t("request_failed", "请求失败");
     request.responseBodyState = "unavailable";
   } else {
     return;
@@ -413,11 +419,11 @@ async function loadResponseBody(tabId, session, request) {
 async function replayRequest(tabId, session, port, message) {
   const replayId = typeof message.replayId === "string" ? message.replayId : "";
   try {
-    if (!replayId) throw new Error("缺少重放请求标识。");
+    if (!replayId) throw new Error(t("missing_replay_id", "缺少重放请求标识。"));
     if (session.detachPromise) await session.detachPromise;
     if (!session.attached && session.panelOpen) await attachDebugger(tabId, session);
     if (!session.attached) {
-      throw new Error(session.error || "当前页面尚未连接，无法发送请求。");
+      throw new Error(session.error || t("page_not_connected", "当前页面尚未连接，无法发送请求。"));
     }
 
     const input = normalizeReplayInput(message.request, session.settings.maxBodyBytes);
@@ -446,14 +452,14 @@ async function replayRequest(tabId, session, port, message) {
       throw new Error(runtimeExceptionMessage(evaluation.exceptionDetails));
     }
     const result = evaluation?.result?.value;
-    if (!result || typeof result !== "object") throw new Error("页面没有返回可读取的响应结果。");
+    if (!result || typeof result !== "object") throw new Error(t("unreadable_response", "页面没有返回可读取的响应结果。"));
     safePost(port, { type: "replay-result", replayId, result });
   } catch (error) {
     session.pendingReplays = session.pendingReplays.filter((item) => item.id !== replayId);
     safePost(port, {
       type: "replay-result",
       replayId,
-      result: { ok: false, error: String(error?.message || error || "请求发送失败") },
+      result: { ok: false, error: String(error?.message || error || t("send_failed", "请求发送失败")) },
     });
   }
 }
@@ -466,21 +472,21 @@ async function cancelReplay(tabId, session, replayId) {
 }
 
 function normalizeReplayInput(request, maxBodyBytes) {
-  if (!request || typeof request !== "object") throw new Error("请求配置无效。");
+  if (!request || typeof request !== "object") throw new Error(t("invalid_request_config", "请求配置无效。"));
   const method = String(request.method || "GET").trim().toUpperCase();
-  if (!/^[A-Z]+$/.test(method)) throw new Error("请求方法无效。");
+  if (!/^[A-Z]+$/.test(method)) throw new Error(t("invalid_request_method", "请求方法无效。"));
 
   let url;
   try {
     url = new URL(String(request.url || ""));
   } catch {
-    throw new Error("请输入有效的请求 URL。");
+    throw new Error(t("invalid_request_url", "请输入有效的请求 URL。"));
   }
-  if (!/^https?:$/.test(url.protocol)) throw new Error("目前只支持重放 HTTP 和 HTTPS 请求。");
+  if (!/^https?:$/.test(url.protocol)) throw new Error(t("http_only", "目前只支持重放 HTTP 和 HTTPS 请求。"));
 
   const body = typeof request.body === "string" ? request.body : "";
   if (new TextEncoder().encode(body).byteLength > maxBodyBytes) {
-    throw new Error("请求体超过设置中的大小上限。");
+    throw new Error(t("request_body_too_large", "请求体超过设置中的大小上限。"));
   }
 
   const headers = Array.isArray(request.headers)
@@ -501,7 +507,14 @@ function normalizeReplayInput(request, maxBodyBytes) {
 
 function buildReplayExpression(input) {
   const sourceName = `apiviewer-replay-${String(input.replayId).replace(/[^a-z0-9_-]/gi, "")}.js`;
-  return `(${pageReplayRequest.toString()})(${JSON.stringify(input)})\n//# sourceURL=${sourceName}`;
+  const localizedInput = {
+    ...input,
+    messages: {
+      canceledOrTimedOut: t("request_canceled_or_timed_out", "请求已取消或等待响应超时。"),
+      sendFailed: t("send_failed", "请求发送失败"),
+    },
+  };
+  return `(${pageReplayRequest.toString()})(${JSON.stringify(localizedInput)})\n//# sourceURL=${sourceName}`;
 }
 
 async function pageReplayRequest(input) {
@@ -548,7 +561,9 @@ async function pageReplayRequest(input) {
     return {
       ok: false,
       duration: Math.max(0, performance.now() - startedAt),
-      error: error?.name === "AbortError" ? "请求已取消或等待响应超时。" : String(error?.message || error || "请求发送失败"),
+      error: error?.name === "AbortError"
+        ? input.messages.canceledOrTimedOut
+        : String(error?.message || error || input.messages.sendFailed),
     };
   } finally {
     clearTimeout(timer);
@@ -583,7 +598,7 @@ function isManagedRequestHeader(name) {
 }
 
 function runtimeExceptionMessage(details) {
-  return details?.exception?.description || details?.text || "页面执行请求时发生错误。";
+  return details?.exception?.description || details?.text || t("page_execution_error", "页面执行请求时发生错误。");
 }
 
 function safePost(port, message) {
@@ -761,23 +776,23 @@ function isInspectableUrl(url) {
 }
 
 function friendlyAttachError(error) {
-  const message = String(error?.message || error || "无法连接到当前标签页");
+  const message = String(error?.message || error || t("cannot_connect_current_tab", "无法连接到当前标签页"));
   if (message.includes("Another debugger")) {
-    return "当前标签页已被开发者工具或其他调试器占用，请关闭后重试。";
+    return t("debugger_in_use", "当前标签页已被开发者工具或其他调试器占用，请关闭后重试。");
   }
   if (message.includes("Cannot access") || message.includes("not allowed")) {
-    return "Chrome 不允许检查此页面，请切换到普通网页后重试。";
+    return t("inspection_not_allowed", "Chrome 不允许检查此页面，请切换到普通网页后重试。");
   }
   return message;
 }
 
 function detachReason(reason) {
   const labels = {
-    target_closed: "标签页已关闭。",
-    canceled_by_user: "调试连接已被用户取消。",
-    replaced_with_devtools: "Chrome 开发者工具已接管调试连接。",
+    target_closed: t("tab_closed", "标签页已关闭。"),
+    canceled_by_user: t("debugger_canceled", "调试连接已被用户取消。"),
+    replaced_with_devtools: t("devtools_replaced", "Chrome 开发者工具已接管调试连接。"),
   };
-  return labels[reason] || "调试连接已断开，可点击重试。";
+  return labels[reason] || t("debugger_detached", "调试连接已断开，可点击重试。");
 }
 
 function debuggerAttach(target, version) {

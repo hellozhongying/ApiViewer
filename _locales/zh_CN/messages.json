@@ -1,0 +1,5 @@
+{
+  "app_name": { "message": "ApiViewer" },
+  "app_description": { "message": "在 Chrome 侧边栏中检查、复制并重放当前标签页的 Fetch / XHR 请求。" },
+  "action_title": { "message": "打开 ApiViewer" }
+}

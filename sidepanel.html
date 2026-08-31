@@ -16,81 +16,81 @@
           </span>
           <span class="brand-copy">
             <strong>ApiViewer</strong>
-            <code id="pageUrl" title="">正在读取当前页面…</code>
+            <code id="pageUrl" title="" data-i18n="reading_current_page">正在读取当前页面…</code>
           </span>
         </div>
         <div class="header-actions">
-          <button id="captureButton" class="live-badge" type="button" aria-pressed="true" title="暂停捕获">
-            <span class="live-dot" aria-hidden="true"></span><span id="captureLabel">连接中</span>
+          <button id="captureButton" class="live-badge" type="button" aria-pressed="true" title="暂停捕获" data-i18n-title="pause_capture">
+            <span class="live-dot" aria-hidden="true"></span><span id="captureLabel" data-i18n="status_connecting">连接中</span>
           </button>
-          <button id="clearButton" class="icon-button" type="button" aria-label="清空请求" title="清空请求">
+          <button id="clearButton" class="icon-button" type="button" aria-label="清空请求" title="清空请求" data-i18n-aria-label="clear_requests" data-i18n-title="clear_requests">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 10v6M14 10v6"/></svg>
           </button>
-          <button id="settingsButton" class="icon-button" type="button" aria-label="打开设置" aria-expanded="false" aria-controls="settingsPopover" title="设置">
+          <button id="settingsButton" class="icon-button" type="button" aria-label="打开设置" aria-expanded="false" aria-controls="settingsPopover" title="设置" data-i18n-aria-label="open_settings" data-i18n-title="settings">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1A1.7 1.7 0 0 0 2.9 13H3V9h-.1A1.7 1.7 0 0 0 4.6 8a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8c.17.38.5.7.9.9.32.16.68.22 1.03.18H21v4h.1a1.7 1.7 0 0 0-1.7 1.9Z"/></svg>
           </button>
         </div>
       </header>
 
-      <section class="request-tools" aria-label="请求筛选">
+      <section class="request-tools" aria-label="请求筛选" data-i18n-aria-label="request_filters">
         <label class="search-box" for="searchInput">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-          <span class="sr-only">搜索请求</span>
-          <input id="searchInput" type="search" autocomplete="off" placeholder="搜索路径、状态码或方法" />
+          <span class="sr-only" data-i18n="search_requests">搜索请求</span>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="搜索路径、状态码或方法" data-i18n-placeholder="search_placeholder" />
           <kbd>⌘K</kbd>
         </label>
-        <div class="filter-tabs" role="group" aria-label="请求类型">
-          <button class="filter-tab active" type="button" data-filter="All" aria-pressed="true">全部</button>
+        <div class="filter-tabs" role="group" aria-label="请求类型" data-i18n-aria-label="request_type">
+          <button class="filter-tab active" type="button" data-filter="All" aria-pressed="true" data-i18n="filter_all">全部</button>
           <button class="filter-tab" type="button" data-filter="XHR" aria-pressed="false">XHR</button>
           <button class="filter-tab" type="button" data-filter="Fetch" aria-pressed="false">Fetch</button>
         </div>
       </section>
 
-      <section class="request-list" aria-label="请求列表">
+      <section class="request-list" aria-label="请求列表" data-i18n-aria-label="request_list">
         <div class="request-list-header" aria-hidden="true">
-          <span>序号</span><span>方法</span><span>请求路径</span><span>状态</span><span>耗时</span>
+          <span data-i18n="column_number">序号</span><span data-i18n="column_method">方法</span><span data-i18n="column_path">请求路径</span><span data-i18n="column_status">状态</span><span data-i18n="column_duration">耗时</span>
         </div>
-        <div id="requestRows" class="request-rows" role="listbox" aria-label="已捕获的请求"></div>
+        <div id="requestRows" class="request-rows" role="listbox" aria-label="已捕获的请求" data-i18n-aria-label="captured_requests"></div>
         <div id="emptyState" class="empty-state">
           <span class="empty-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M4 17 10 11l4 4 6-7"/><path d="M4 5v14h16"/></svg>
           </span>
-          <strong id="emptyTitle">等待网络请求</strong>
-          <p id="emptyText">刷新当前页面或进行操作，Fetch / XHR 请求会显示在这里。</p>
-          <button id="retryButton" class="secondary-button hidden" type="button">重新连接</button>
+          <strong id="emptyTitle" data-i18n="waiting_for_requests">等待网络请求</strong>
+          <p id="emptyText" data-i18n="waiting_for_requests_hint">刷新当前页面或进行操作，Fetch / XHR 请求会显示在这里。</p>
+          <button id="retryButton" class="secondary-button hidden" type="button" data-i18n="reconnect">重新连接</button>
         </div>
       </section>
 
-      <section id="requestDetail" class="request-detail" aria-label="请求详情">
+      <section id="requestDetail" class="request-detail" aria-label="请求详情" data-i18n-aria-label="request_detail">
         <div id="detailHeading" class="detail-heading">
           <div class="detail-endpoint">
             <span id="detailSelectionMarker" class="detail-selection-marker" aria-hidden="true" hidden>
               <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
             </span>
-            <span id="detailSelectionLabel" class="sr-only" hidden>当前选中的请求</span>
+            <span id="detailSelectionLabel" class="sr-only" hidden data-i18n="current_selection">当前选中的请求</span>
             <span id="detailMethod" class="method-chip">—</span>
-            <code id="detailPath">选择一个请求查看详情</code>
+            <code id="detailPath" data-i18n="select_request">选择一个请求查看详情</code>
           </div>
           <div class="detail-meta">
             <span id="detailStatus">—</span><span id="detailDuration">—</span><span id="detailSize">—</span>
           </div>
         </div>
-        <div class="detail-tabs" role="tablist" aria-label="详情内容">
-          <button type="button" role="tab" data-tab="overview" aria-selected="true">概览</button>
-          <button type="button" role="tab" data-tab="headers" aria-selected="false">请求头</button>
-          <button type="button" role="tab" data-tab="request" aria-selected="false">请求</button>
-          <button type="button" role="tab" data-tab="response" aria-selected="false">响应</button>
+        <div class="detail-tabs" role="tablist" aria-label="详情内容" data-i18n-aria-label="detail_content">
+          <button type="button" role="tab" data-tab="overview" aria-selected="true" data-i18n="overview">概览</button>
+          <button type="button" role="tab" data-tab="headers" aria-selected="false" data-i18n="request_headers">请求头</button>
+          <button type="button" role="tab" data-tab="request" aria-selected="false" data-i18n="request">请求</button>
+          <button type="button" role="tab" data-tab="response" aria-selected="false" data-i18n="response">响应</button>
         </div>
         <div class="code-wrap">
           <div class="code-panel">
             <div class="code-toolbar">
-              <span id="contentFormat" class="format">详情</span>
+              <span id="contentFormat" class="format" data-i18n="details">详情</span>
               <button id="copyContentButton" class="mini-copy" type="button" disabled>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-                复制
+                <span data-i18n="copy">复制</span>
               </button>
             </div>
-            <pre id="detailContent" tabindex="0">从上方列表中选择一个请求。</pre>
+            <pre id="detailContent" tabindex="0" data-i18n="select_request_hint">从上方列表中选择一个请求。</pre>
           </div>
         </div>
       </section>
@@ -98,53 +98,53 @@
       <footer class="action-bar">
         <button id="replayButton" class="action-button primary" type="button" disabled>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M18.2 16a7 7 0 1 1 .8-7.8L20 12"/></svg>
-          编辑并重发
+          <span data-i18n="edit_and_resend">编辑并重发</span>
         </button>
         <button id="copyCurlButton" class="action-button" type="button" disabled>
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-          复制 cURL
+          <span data-i18n="copy_curl">复制 cURL</span>
         </button>
-        <button id="copyRequestButton" class="action-button" type="button" aria-label="复制请求 JSON" title="复制请求 JSON" disabled>
+        <button id="copyRequestButton" class="action-button" type="button" aria-label="复制请求 JSON" title="复制请求 JSON" disabled data-i18n-aria-label="copy_request_json" data-i18n-title="copy_request_json">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-          <span class="action-label">复制请求 JSON</span>
+          <span class="action-label" data-i18n="copy_request_json">复制请求 JSON</span>
         </button>
         <button id="copyResponseButton" class="action-button" type="button" disabled>
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-          复制响应 JSON
+          <span data-i18n="copy_response_json">复制响应 JSON</span>
         </button>
       </footer>
 
-      <section id="replayView" class="replay-view hidden" aria-label="请求重放编辑器">
+      <section id="replayView" class="replay-view hidden" aria-label="请求重放编辑器" data-i18n-aria-label="replay_editor">
         <header class="replay-header">
-          <button id="replayBackButton" class="icon-button replay-back" type="button" aria-label="返回请求详情" title="返回请求详情">
+          <button id="replayBackButton" class="icon-button replay-back" type="button" aria-label="返回请求详情" title="返回请求详情" data-i18n-aria-label="back_to_request" data-i18n-title="back_to_request">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           <div class="replay-title">
-            <strong>编辑并重发</strong>
+            <strong data-i18n="edit_and_resend">编辑并重发</strong>
             <code id="replaySourcePath">—</code>
           </div>
-          <span class="replay-context-badge" title="请求会在当前标签页的页面上下文中发送">当前页面</span>
+          <span class="replay-context-badge" title="请求会在当前标签页的页面上下文中发送" data-i18n="current_page" data-i18n-title="current_page_hint">当前页面</span>
         </header>
 
         <div class="replay-request-line">
           <label class="replay-method-field" for="replayMethod">
-            <span class="sr-only">请求方法</span>
-            <select id="replayMethod" aria-label="请求方法">
+            <span class="sr-only" data-i18n="request_method">请求方法</span>
+            <select id="replayMethod" aria-label="请求方法" data-i18n-aria-label="request_method">
               <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
             </select>
           </label>
           <label class="replay-url-field" for="replayUrl">
-            <span class="sr-only">请求 URL</span>
+            <span class="sr-only" data-i18n="request_url">请求 URL</span>
             <input id="replayUrl" type="url" autocomplete="off" spellcheck="false" aria-describedby="replayUrlError" />
           </label>
           <p id="replayUrlError" class="field-error hidden"></p>
         </div>
 
-        <div class="replay-tabs" role="tablist" aria-label="请求重放内容">
-          <button type="button" role="tab" data-replay-tab="params" aria-selected="true">参数 <span id="replayParamsCount">0</span></button>
-          <button type="button" role="tab" data-replay-tab="headers" aria-selected="false">请求头 <span id="replayHeadersCount">0</span></button>
-          <button type="button" role="tab" data-replay-tab="body" aria-selected="false">请求体</button>
-          <button id="replayResponseTab" type="button" role="tab" data-replay-tab="response" aria-selected="false" disabled>响应</button>
+        <div class="replay-tabs" role="tablist" aria-label="请求重放内容" data-i18n-aria-label="replay_content">
+          <button type="button" role="tab" data-replay-tab="params" aria-selected="true"><span data-i18n="parameters">参数</span> <span id="replayParamsCount">0</span></button>
+          <button type="button" role="tab" data-replay-tab="headers" aria-selected="false"><span data-i18n="request_headers">请求头</span> <span id="replayHeadersCount">0</span></button>
+          <button type="button" role="tab" data-replay-tab="body" aria-selected="false" data-i18n="request_body">请求体</button>
+          <button id="replayResponseTab" type="button" role="tab" data-replay-tab="response" aria-selected="false" disabled data-i18n="response">响应</button>
         </div>
 
         <div id="replayErrorSummary" class="replay-error-summary hidden" role="alert" tabindex="-1"></div>
@@ -153,40 +153,40 @@
         <footer class="replay-action-bar">
           <label class="credentials-switch" for="replayCredentials">
             <input id="replayCredentials" type="checkbox" checked />
-            <span>使用当前登录态</span>
+            <span data-i18n="use_current_session">使用当前登录态</span>
           </label>
           <span class="action-spacer"></span>
-          <button id="replayResetButton" class="action-button" type="button">恢复原始值</button>
-          <button id="replayCancelButton" class="action-button danger-outline hidden" type="button">取消</button>
-          <button id="replaySendButton" class="action-button primary" type="button" title="发送请求（⌘/Ctrl + Enter）">
+          <button id="replayResetButton" class="action-button" type="button" data-i18n="reset_original">恢复原始值</button>
+          <button id="replayCancelButton" class="action-button danger-outline hidden" type="button" data-i18n="cancel">取消</button>
+          <button id="replaySendButton" class="action-button primary" type="button" title="发送请求（⌘/Ctrl + Enter）" data-i18n-title="send_shortcut">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-            <span>发送请求</span>
+            <span data-i18n="send_request">发送请求</span>
           </button>
         </footer>
       </section>
 
-      <aside id="settingsPopover" class="settings-popover hidden" aria-label="ApiViewer 设置">
+      <aside id="settingsPopover" class="settings-popover hidden" aria-label="ApiViewer 设置" data-i18n-aria-label="api_settings">
         <div class="settings-heading">
-          <div><strong>捕获设置</strong><span>设置会自动保存</span></div>
-          <button id="closeSettingsButton" class="icon-button" type="button" aria-label="关闭设置">
+          <div><strong data-i18n="capture_settings">捕获设置</strong><span data-i18n="settings_auto_save">设置会自动保存</span></div>
+          <button id="closeSettingsButton" class="icon-button" type="button" aria-label="关闭设置" data-i18n-aria-label="close_settings">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
           </button>
         </div>
         <label class="setting-row" for="maxRequestsSelect">
-          <span><strong>请求数量上限</strong><small>超过后自动移除最早的记录</small></span>
+          <span><strong data-i18n="max_requests">请求数量上限</strong><small data-i18n="max_requests_hint">超过后自动移除最早的记录</small></span>
           <select id="maxRequestsSelect"><option value="100">100</option><option value="250">250</option><option value="500">500</option></select>
         </label>
         <label class="setting-row" for="maxBodySelect">
-          <span><strong>响应体上限</strong><small>较大的响应体不会保存在内存中</small></span>
+          <span><strong data-i18n="max_response_body">响应体上限</strong><small data-i18n="max_response_body_hint">较大的响应体不会保存在内存中</small></span>
           <select id="maxBodySelect"><option value="1048576">1 MB</option><option value="2097152">2 MB</option><option value="5242880">5 MB</option></select>
         </label>
         <label class="setting-row switch-row" for="autoStartInput">
-          <span><strong>打开时自动捕获</strong><small>每次打开侧边栏立即开始</small></span>
+          <span><strong data-i18n="auto_capture">打开时自动捕获</strong><small data-i18n="auto_capture_hint">每次打开侧边栏立即开始</small></span>
           <input id="autoStartInput" type="checkbox" role="switch" checked />
         </label>
         <p class="settings-note">
-          ApiViewer 只在侧边栏打开期间连接当前标签页；关闭后会自动解除连接。
-          <a href="privacy.html" target="_blank" rel="noreferrer">查看隐私政策</a>
+          <span data-i18n="settings_privacy_note">ApiViewer 只在侧边栏打开期间连接当前标签页；关闭后会自动解除连接。</span>
+          <a href="privacy.html" target="_blank" rel="noreferrer" data-i18n="view_privacy_policy" data-localized-privacy-link>查看隐私政策</a>
         </p>
       </aside>
 
@@ -194,7 +194,7 @@
         <span class="toast-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-9"/></svg>
         </span>
-        <span id="toastText">已复制到剪贴板</span>
+        <span id="toastText" data-i18n="copied_to_clipboard">已复制到剪贴板</span>
       </div>
     </main>
 
@@ -213,42 +213,42 @@
           </span>
         </div>
         <div class="consent-heading">
-          <span class="consent-eyebrow">开始使用前</span>
-          <h1 id="privacyConsentTitle">允许 ApiViewer 读取当前标签页的网络请求</h1>
-          <p id="privacyConsentDescription">捕获内容可能包含登录令牌、Cookie 或其他敏感信息。请确认你理解数据的处理方式。</p>
+          <span class="consent-eyebrow" data-i18n="before_you_begin">开始使用前</span>
+          <h1 id="privacyConsentTitle" data-i18n="consent_title">允许 ApiViewer 读取当前标签页的网络请求</h1>
+          <p id="privacyConsentDescription" data-i18n="consent_description">捕获内容可能包含登录令牌、Cookie 或其他敏感信息。请确认你理解数据的处理方式。</p>
         </div>
 
-        <ul class="consent-facts" aria-label="数据处理说明">
+        <ul class="consent-facts" aria-label="数据处理说明" data-i18n-aria-label="data_handling">
           <li>
             <span class="consent-fact-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
             </span>
-            <span><strong>读取什么</strong><small>当前标签页 Fetch / XHR 的 URL、请求与响应头、请求体和响应体。</small></span>
+            <span><strong data-i18n="what_is_read">读取什么</strong><small data-i18n="what_is_read_detail">当前标签页 Fetch / XHR 的 URL、请求与响应头、请求体和响应体。</small></span>
           </li>
           <li>
             <span class="consent-fact-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
             </span>
-            <span><strong>如何保存</strong><small>捕获记录只保存在浏览器运行内存，不上传到开发者服务器；关闭侧边栏后清除。</small></span>
+            <span><strong data-i18n="how_it_is_stored">如何保存</strong><small data-i18n="how_it_is_stored_detail">捕获记录只保存在浏览器运行内存，不上传到开发者服务器；关闭侧边栏后清除。</small></span>
           </li>
           <li>
             <span class="consent-fact-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
             </span>
-            <span><strong>重放请求</strong><small>仅在你点击发送后，将编辑内容发送到你填写的目标网站，并可使用当前页面登录态。</small></span>
+            <span><strong data-i18n="replay_requests">重放请求</strong><small data-i18n="replay_requests_detail">仅在你点击发送后，将编辑内容发送到你填写的目标网站，并可使用当前页面登录态。</small></span>
           </li>
         </ul>
 
         <p id="consentDeclinedMessage" class="consent-declined hidden" role="status">
-          尚未授权，ApiViewer 不会连接调试器或读取任何网络请求。你可以关闭侧边栏，或稍后在这里同意。
+          <span data-i18n="consent_declined">尚未授权，ApiViewer 不会连接调试器或读取任何网络请求。你可以关闭侧边栏，或稍后在这里同意。</span>
         </p>
 
         <div class="consent-actions">
-          <button id="consentAcceptButton" class="consent-primary" type="button">同意并开始捕获</button>
-          <button id="consentDeclineButton" class="consent-secondary" type="button">暂不使用</button>
+          <button id="consentAcceptButton" class="consent-primary" type="button" data-i18n="consent_accept">同意并开始捕获</button>
+          <button id="consentDeclineButton" class="consent-secondary" type="button" data-i18n="consent_decline">暂不使用</button>
         </div>
         <p class="consent-policy-link">
-          同意即表示你已阅读数据处理说明。<a href="privacy.html" target="_blank" rel="noreferrer">查看完整隐私政策</a>
+          <span data-i18n="consent_policy_prefix">同意即表示你已阅读数据处理说明。</span> <a href="privacy.html" target="_blank" rel="noreferrer" data-i18n="view_full_privacy_policy" data-localized-privacy-link>查看完整隐私政策</a>
         </p>
       </div>
     </section>

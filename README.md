@@ -4,6 +4,10 @@ ApiViewer 是一个 Manifest V3 Chrome 侧边栏扩展，用于捕获当前标�
 
 ## 安装
 
+推荐直接从 [Chrome Web Store 安装 ApiViewer](https://chromewebstore.google.com/detail/emnmbnciefkdobogcfghoelgnncobfnm?utm_source=item-share-cb)。
+
+如需本地开发或调试，也可以加载已解压的扩展：
+
 1. 在 Chrome 地址栏打开 `chrome://extensions/`。
 2. 打开右上角的“开发者模式”。
 3. 点击“加载已解压的扩展程序”。

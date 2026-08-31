@@ -35,6 +35,31 @@ const state = {
 const PANEL_HEARTBEAT_INTERVAL_MS = 400;
 const REPLAYABLE_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const UI_LANGUAGE = chrome.i18n?.getUILanguage?.() || navigator.language || "zh-CN";
+const USE_CHINESE = /^zh(?:-|$)/i.test(UI_LANGUAGE);
+
+function t(key, fallback, values = {}) {
+  const translated = USE_CHINESE ? "" : chrome.i18n?.getMessage?.(key);
+  return String(translated || fallback).replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => (
+    Object.hasOwn(values, name) ? String(values[name]) : match
+  ));
+}
+
+function applyLocalizations() {
+  document.documentElement.lang = USE_CHINESE ? "zh-CN" : "en";
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n, element.textContent.trim());
+  });
+  for (const attribute of ["title", "aria-label", "placeholder"]) {
+    document.querySelectorAll(`[data-i18n-${attribute}]`).forEach((element) => {
+      const key = element.dataset[`i18n${attribute.split("-").map((part) => part[0].toUpperCase() + part.slice(1)).join("")}`];
+      element.setAttribute(attribute, t(key, element.getAttribute(attribute) || ""));
+    });
+  }
+  document.querySelectorAll("[data-localized-privacy-link]").forEach((link) => {
+    link.href = USE_CHINESE ? "privacy.html" : "privacy-en.html";
+  });
+}
 
 const elements = {
   appShell: document.querySelector("#appShell"),
@@ -105,6 +130,7 @@ const confirmedReplayOrigins = new Set();
 void initialize();
 
 async function initialize() {
+  applyLocalizations();
   bindEvents();
   connectPort();
   startPanelHeartbeat();
@@ -119,14 +145,14 @@ function bindEvents() {
   elements.consentAcceptButton.addEventListener("click", () => {
     if (!Number.isInteger(state.tabId)) return;
     elements.consentAcceptButton.disabled = true;
-    elements.consentAcceptButton.textContent = "正在启用…";
+    elements.consentAcceptButton.textContent = t("consent_enabling", "正在启用…");
     elements.consentDeclinedMessage.classList.add("hidden");
     send({ type: "grant-consent", tabId: state.tabId });
   });
   elements.consentDeclineButton.addEventListener("click", () => {
     elements.consentDeclinedMessage.classList.remove("hidden");
     elements.consentAcceptButton.disabled = false;
-    elements.consentAcceptButton.textContent = "同意并开始捕获";
+    elements.consentAcceptButton.textContent = t("consent_accept", "同意并开始捕获");
     send({ type: "panel-closing" });
     elements.consentAcceptButton.focus();
   });
@@ -221,17 +247,17 @@ function bindEvents() {
 
   elements.copyContentButton.addEventListener("click", () => {
     const content = currentDetailContent();
-    if (content.copyValue) void copyText(content.copyValue, `已复制${content.label}`);
+    if (content.copyValue) void copyText(content.copyValue, t("copied_label", `已复制${content.label}`, { label: content.label }));
   });
   elements.replayButton.addEventListener("click", openReplay);
   elements.copyCurlButton.addEventListener("click", () => {
-    if (state.selectedDetail) void copyText(buildCurl(state.selectedDetail), "已复制 cURL 到剪贴板");
+    if (state.selectedDetail) void copyText(buildCurl(state.selectedDetail), t("copied_curl", "已复制 cURL 到剪贴板"));
   });
   elements.copyRequestButton.addEventListener("click", () => {
-    if (state.selectedDetail?.requestBody) void copyText(state.selectedDetail.requestBody, "已复制请求体到剪贴板");
+    if (state.selectedDetail?.requestBody) void copyText(state.selectedDetail.requestBody, t("copied_request_body", "已复制请求体到剪贴板"));
   });
   elements.copyResponseButton.addEventListener("click", () => {
-    if (state.selectedDetail?.responseBody) void copyText(state.selectedDetail.responseBody, "已复制响应体到剪贴板");
+    if (state.selectedDetail?.responseBody) void copyText(state.selectedDetail.responseBody, t("copied_response_body", "已复制响应体到剪贴板"));
   });
 
   elements.replayBackButton.addEventListener("click", () => closeReplay());
@@ -258,7 +284,7 @@ function bindEvents() {
     if (!state.replay.draft) return;
     const parsed = parseReplayUrl(state.replay.draft.url);
     if (!parsed) {
-      showReplayUrlError("请输入有效的 HTTP 或 HTTPS URL。");
+      showReplayUrlError(t("invalid_http_url", "请输入有效的 HTTP 或 HTTPS URL。"));
       return;
     }
     state.replay.draft.url = parsed.url;
@@ -307,10 +333,10 @@ function connectPort() {
     state.port = null;
     if (panelIsClosing) return;
     state.captureStatus = "detached";
-    state.connectionError = "后台连接已中断，正在重新连接…";
+    state.connectionError = t("background_reconnecting", "后台连接已中断，正在重新连接…");
     if (state.replay.sending) {
       state.replay.sending = false;
-      state.replay.result = { ok: false, error: "后台连接已中断，请重新连接后再试。" };
+      state.replay.result = { ok: false, error: t("background_retry", "后台连接已中断，请重新连接后再试。") };
       state.replay.activeTab = "response";
       renderReplay();
     }
@@ -392,7 +418,7 @@ function handleMessage(message) {
   if (message.type === "consent-required") {
     showPrivacyConsent();
   } else if (message.type === "consent-error") {
-    showPrivacyConsent(message.error || "无法保存授权状态，请重试。", true);
+    showPrivacyConsent(message.error || t("consent_save_error", "无法保存授权状态，请重试。"), true);
   } else if (message.type === "status") {
     state.captureStatus = message.status;
     state.capturing = message.capturing;
@@ -420,7 +446,7 @@ function handleMessage(message) {
   } else if (message.type === "replay-result") {
     if (!state.replay.open || message.replayId !== state.replay.replayId) return;
     state.replay.sending = false;
-    state.replay.result = message.result || { ok: false, error: "请求没有返回结果。" };
+    state.replay.result = message.result || { ok: false, error: t("no_replay_result", "请求没有返回结果。") };
     state.replay.activeTab = "response";
     state.replay.dirty = false;
     renderReplay();
@@ -433,7 +459,7 @@ function showPrivacyConsent(message = "", isError = false) {
   elements.appShell.setAttribute("aria-hidden", "true");
   elements.privacyConsent.classList.remove("hidden");
   elements.consentAcceptButton.disabled = false;
-  elements.consentAcceptButton.textContent = "同意并开始捕获";
+  elements.consentAcceptButton.textContent = t("consent_accept", "同意并开始捕获");
   if (message) {
     elements.consentDeclinedMessage.textContent = message;
     elements.consentDeclinedMessage.classList.remove("hidden");
@@ -448,7 +474,7 @@ function hidePrivacyConsent() {
   elements.appShell.inert = false;
   elements.appShell.removeAttribute("aria-hidden");
   elements.consentAcceptButton.disabled = false;
-  elements.consentAcceptButton.textContent = "同意并开始捕获";
+  elements.consentAcceptButton.textContent = t("consent_accept", "同意并开始捕获");
   elements.consentDeclinedMessage.classList.add("hidden");
   elements.searchInput.focus({ preventScroll: true });
 }
@@ -507,8 +533,13 @@ function renderRequestList({ newRequestId = null, followLatest = false } = {}) {
     row.setAttribute("role", "option");
     row.setAttribute("aria-selected", String(request.id === state.selectedId));
     row.tabIndex = request.id === state.selectedId || (!state.selectedId && request === visible[0]) ? 0 : -1;
-    row.title = request.replayed ? `重放请求 · ${request.url}` : request.url;
-    row.setAttribute("aria-label", `第 ${index + 1} 项，${requestAriaLabel(request)}`);
+    row.title = request.replayed
+      ? t("replayed_request_title", `重放请求 · ${request.url}`, { url: request.url })
+      : request.url;
+    row.setAttribute("aria-label", t("request_row_label", `第 ${index + 1} 项，${requestAriaLabel(request)}`, {
+      index: index + 1,
+      description: requestAriaLabel(request),
+    }));
     row.addEventListener("click", () => selectRequest(request.id, true));
 
     const sequence = document.createElement("span");
@@ -522,6 +553,7 @@ function renderRequestList({ newRequestId = null, followLatest = false } = {}) {
     const path = document.createElement("span");
     path.className = "path";
     path.textContent = displayPath(request.url);
+    if (request.replayed) path.dataset.replayLabel = t("replayed_badge", "重放");
 
     const status = document.createElement("span");
     status.className = `status-code ${statusClass(request)}`;
@@ -553,17 +585,17 @@ function renderEmptyState(visible) {
   elements.retryButton.classList.toggle("hidden", !connectionFailed);
 
   if (connectionFailed) {
-    elements.emptyTitle.textContent = "无法连接当前页面";
-    elements.emptyText.textContent = state.connectionError || "请切换到普通网页后重新连接。";
+    elements.emptyTitle.textContent = t("cannot_connect", "无法连接当前页面");
+    elements.emptyText.textContent = state.connectionError || t("switch_page_and_retry", "请切换到普通网页后重新连接。");
   } else if (noSearchResults) {
-    elements.emptyTitle.textContent = "没有匹配的请求";
-    elements.emptyText.textContent = "尝试更换关键词或切换请求类型。";
+    elements.emptyTitle.textContent = t("no_matching_requests", "没有匹配的请求");
+    elements.emptyText.textContent = t("change_search_hint", "尝试更换关键词或切换请求类型。");
   } else if (!state.capturing) {
-    elements.emptyTitle.textContent = "捕获已暂停";
-    elements.emptyText.textContent = "点击顶部状态按钮继续捕获 Fetch / XHR 请求。";
+    elements.emptyTitle.textContent = t("capture_paused", "捕获已暂停");
+    elements.emptyText.textContent = t("resume_capture_hint", "点击顶部状态按钮继续捕获 Fetch / XHR 请求。");
   } else {
-    elements.emptyTitle.textContent = "等待网络请求";
-    elements.emptyText.textContent = "刷新当前页面或进行操作，Fetch / XHR 请求会显示在这里。";
+    elements.emptyTitle.textContent = t("waiting_for_requests", "等待网络请求");
+    elements.emptyText.textContent = t("waiting_for_requests_hint", "刷新当前页面或进行操作，Fetch / XHR 请求会显示在这里。");
   }
 }
 
@@ -596,7 +628,7 @@ function renderDetail() {
   if (!summary) {
     elements.detailMethod.textContent = "—";
     elements.detailMethod.className = "method-chip";
-    elements.detailPath.textContent = "选择一个请求查看详情";
+    elements.detailPath.textContent = t("select_request", "选择一个请求查看详情");
     elements.detailPath.title = "";
     elements.detailStatus.textContent = "—";
     elements.detailStatus.className = "";
@@ -608,8 +640,8 @@ function renderDetail() {
     elements.detailPath.textContent = displayPath(summary.url);
     elements.detailPath.title = summary.url;
     elements.detailStatus.textContent = summary.failed
-      ? "请求失败"
-      : summary.status ? `${summary.status} ${summary.statusText || statusText(summary.status)}`.trim() : "等待响应";
+      ? t("request_failed", "请求失败")
+      : summary.status ? `${summary.status} ${summary.statusText || statusText(summary.status)}`.trim() : t("waiting_for_response", "等待响应");
     elements.detailStatus.className = statusClass(summary);
     elements.detailDuration.textContent = formatDuration(summary.duration);
     elements.detailSize.textContent = formatBytes(summary.size);
@@ -639,8 +671,18 @@ function renderDetailContent() {
 
 function currentDetailContent() {
   const detail = state.selectedDetail;
-  if (!state.selectedId) return { format: "详情", label: "内容", displayValue: "从上方列表中选择一个请求。", copyValue: "" };
-  if (!detail) return { format: "正在读取", label: "内容", displayValue: "正在读取请求详情…", copyValue: "" };
+  if (!state.selectedId) return {
+    format: t("details", "详情"),
+    label: t("content", "内容"),
+    displayValue: t("select_request_hint", "从上方列表中选择一个请求。"),
+    copyValue: "",
+  };
+  if (!detail) return {
+    format: t("reading_details", "正在读取"),
+    label: t("content", "内容"),
+    displayValue: t("reading_request_details", "正在读取请求详情…"),
+    copyValue: "",
+  };
 
   if (state.activeDetailTab === "overview") {
     const overview = {
@@ -658,58 +700,58 @@ function currentDetailContent() {
       error: detail.errorText || undefined,
     };
     const value = prettyJson(overview);
-    return { format: "概览 · JSON", label: "概览", displayValue: value, copyValue: value };
+    return { format: t("overview_json", "概览 · JSON"), label: t("overview", "概览"), displayValue: value, copyValue: value };
   }
 
   if (state.activeDetailTab === "request") {
     if (!detail.requestBody) {
       const message = detail.requestBodyAvailable
-        ? "请求体不可用，页面可能在捕获开始前发起了该请求。"
-        : "此请求没有请求体。";
-      return { format: "请求体", label: "请求体", displayValue: message, copyValue: "" };
+        ? t("request_body_unavailable", "请求体不可用，页面可能在捕获开始前发起了该请求。")
+        : t("request_has_no_body", "此请求没有请求体。");
+      return { format: t("request_body", "请求体"), label: t("request_body", "请求体"), displayValue: message, copyValue: "" };
     }
     const formatted = prettyBody(detail.requestBody);
-    return { format: formatted.format, label: "请求体", displayValue: formatted.value, copyValue: detail.requestBody };
+    return { format: formatted.format, label: t("request_body", "请求体"), displayValue: formatted.value, copyValue: detail.requestBody };
   }
 
   if (state.activeDetailTab === "response") {
     if (detail.responseBodyBase64) {
       return {
-        format: "Base64 · 二进制",
-        label: "Base64 响应体",
-        displayValue: "此响应为二进制内容。可复制 Base64 数据，但不会在面板中直接渲染。",
+        format: t("base64_binary", "Base64 · 二进制"),
+        label: t("base64_response_body", "Base64 响应体"),
+        displayValue: t("binary_response_hint", "此响应为二进制内容。可复制 Base64 数据，但不会在面板中直接渲染。"),
         copyValue: detail.responseBody,
       };
     }
     if (detail.responseBodyState === "too-large") {
-      return { format: "响应体", label: "响应体", displayValue: "响应体超过设置中的大小上限，未保存在内存中。", copyValue: "" };
+      return { format: t("response_body", "响应体"), label: t("response_body", "响应体"), displayValue: t("response_too_large", "响应体超过设置中的大小上限，未保存在内存中。"), copyValue: "" };
     }
     if (detail.responseBodyState === "unavailable") {
-      return { format: "响应体", label: "响应体", displayValue: "Chrome 未提供此响应体。缓存、跨进程跳转或流式响应可能导致该情况。", copyValue: "" };
+      return { format: t("response_body", "响应体"), label: t("response_body", "响应体"), displayValue: t("response_unavailable", "Chrome 未提供此响应体。缓存、跨进程跳转或流式响应可能导致该情况。"), copyValue: "" };
     }
     if (detail.responseBodyState === "pending" || detail.responseBodyState === "loading") {
-      return { format: "响应体", label: "响应体", displayValue: "正在等待响应体…", copyValue: "" };
+      return { format: t("response_body", "响应体"), label: t("response_body", "响应体"), displayValue: t("waiting_response_body", "正在等待响应体…"), copyValue: "" };
     }
     if (!detail.responseBody) {
-      return { format: "响应体", label: "响应体", displayValue: "响应体为空。", copyValue: "" };
+      return { format: t("response_body", "响应体"), label: t("response_body", "响应体"), displayValue: t("empty_response_body", "响应体为空。"), copyValue: "" };
     }
     const formatted = prettyBody(detail.responseBody, detail.mimeType);
-    return { format: formatted.format, label: "响应体", displayValue: formatted.value, copyValue: detail.responseBody };
+    return { format: formatted.format, label: t("response_body", "响应体"), displayValue: formatted.value, copyValue: detail.responseBody };
   }
 
   const headers = detail.requestHeaders || {};
-  const value = Object.keys(headers).length ? prettyJson(headers) : "没有可用的请求头。";
-  return { format: "请求头 · JSON", label: "请求头", displayValue: value, copyValue: Object.keys(headers).length ? value : "" };
+  const value = Object.keys(headers).length ? prettyJson(headers) : t("no_request_headers", "没有可用的请求头。");
+  return { format: t("request_headers_json", "请求头 · JSON"), label: t("request_headers", "请求头"), displayValue: value, copyValue: Object.keys(headers).length ? value : "" };
 }
 
 function openReplay() {
   if (!state.selectedDetail) {
-    showToast("请求详情仍在读取，请稍后重试。", true);
+    showToast(t("details_still_loading", "请求详情仍在读取，请稍后重试。"), true);
     return;
   }
   const method = String(state.selectedDetail.method || "GET").toUpperCase();
   if (!REPLAYABLE_METHODS.has(method)) {
-    showToast(`暂不支持重放 ${method} 请求。`, true);
+    showToast(t("replay_not_supported", `暂不支持重放 ${method} 请求。`, { method }), true);
     return;
   }
 
@@ -733,8 +775,8 @@ function openReplay() {
 
 function closeReplay(force = false) {
   if (!state.replay.open) return;
-  if (!force && state.replay.sending && !window.confirm("请求仍在发送，确定要取消并返回吗？")) return;
-  if (!force && !state.replay.sending && state.replay.dirty && !window.confirm("尚未发送的修改将会丢失，确定返回吗？")) return;
+  if (!force && state.replay.sending && !window.confirm(t("confirm_cancel_sending", "请求仍在发送，确定要取消并返回吗？"))) return;
+  if (!force && !state.replay.sending && state.replay.dirty && !window.confirm(t("confirm_discard_changes", "尚未发送的修改将会丢失，确定返回吗？"))) return;
   if (state.replay.sending && state.replay.replayId) {
     send({ type: "cancel-replay", replayId: state.replay.replayId });
   }
@@ -850,10 +892,10 @@ function renderPairEditor(kind) {
   const toolbar = createElement("div", "editor-section-toolbar");
   const heading = createElement("div");
   heading.append(
-    createElement("strong", "", isHeaders ? "请求头" : "查询参数"),
+    createElement("strong", "", isHeaders ? t("request_headers", "请求头") : t("query_parameters", "查询参数")),
     createElement("p", "editor-helper", isHeaders
-      ? "浏览器自动管理的请求头仅供参考；敏感值默认隐藏。"
-      : "关闭某一行可临时从发送 URL 中移除该参数。"),
+      ? t("headers_helper", "浏览器自动管理的请求头仅供参考；敏感值默认隐藏。")
+      : t("params_helper", "关闭某一行可临时从发送 URL 中移除该参数。")),
   );
   toolbar.append(heading);
 
@@ -867,17 +909,21 @@ function renderPairEditor(kind) {
       state.replay.showSensitive = showInput.checked;
       renderReplayEditor();
     });
-    showLabel.append(showInput, document.createTextNode("显示敏感值"));
+    showLabel.append(showInput, document.createTextNode(t("show_sensitive_values", "显示敏感值")));
     toolbar.append(showLabel);
   }
   section.append(toolbar);
 
   const list = createElement("div", "kv-list");
   items.forEach((item, index) => list.append(createPairRow(kind, item, index)));
-  if (!items.length) list.append(createElement("p", "empty-editor-note", isHeaders ? "没有可用的请求头。" : "此 URL 没有查询参数。"));
+  if (!items.length) list.append(createElement("p", "empty-editor-note", isHeaders
+    ? t("no_request_headers", "没有可用的请求头。")
+    : t("no_query_parameters", "此 URL 没有查询参数。")));
   section.append(list);
 
-  const addButton = createElement("button", "secondary-button add-row-button", isHeaders ? "＋ 添加请求头" : "＋ 添加参数");
+  const addButton = createElement("button", "secondary-button add-row-button", isHeaders
+    ? t("add_request_header", "＋ 添加请求头")
+    : t("add_parameter", "＋ 添加参数"));
   addButton.type = "button";
   addButton.disabled = state.replay.sending;
   addButton.addEventListener("click", () => {
@@ -899,7 +945,8 @@ function createPairRow(kind, item, index) {
   enabled.className = "kv-enabled";
   enabled.checked = item.enabled;
   enabled.disabled = state.replay.sending || item.managed;
-  enabled.setAttribute("aria-label", `${item.name || `第 ${index + 1} 行`}是否随请求发送`);
+  const rowName = item.name || t("row_number", `第 ${index + 1} 行`, { index: index + 1 });
+  enabled.setAttribute("aria-label", t("row_send_label", `${rowName}是否随请求发送`, { name: rowName }));
   enabled.addEventListener("change", () => {
     item.enabled = enabled.checked;
     markReplayDirty();
@@ -910,12 +957,16 @@ function createPairRow(kind, item, index) {
   const name = document.createElement("input");
   name.className = "kv-input";
   name.value = item.name;
-  name.placeholder = "名称";
+  name.placeholder = t("name", "名称");
   name.autocomplete = "off";
   name.spellcheck = false;
   name.readOnly = item.managed;
   name.disabled = state.replay.sending;
-  name.setAttribute("aria-label", `${isHeaders ? "请求头" : "参数"}名称 ${index + 1}`);
+  name.setAttribute("aria-label", t(
+    isHeaders ? "header_name_label" : "parameter_name_label",
+    `${isHeaders ? "请求头" : "参数"}名称 ${index + 1}`,
+    { index: index + 1 },
+  ));
   name.addEventListener("input", () => {
     item.name = name.value;
     markReplayDirty();
@@ -936,12 +987,16 @@ function createPairRow(kind, item, index) {
   value.className = "kv-input";
   value.type = isHeaders && isSensitiveHeader(item.name) && !state.replay.showSensitive ? "password" : "text";
   value.value = item.value;
-  value.placeholder = "值";
+  value.placeholder = t("value", "值");
   value.autocomplete = "off";
   value.spellcheck = false;
   value.readOnly = item.managed;
   value.disabled = state.replay.sending;
-  value.setAttribute("aria-label", `${isHeaders ? "请求头" : "参数"}值 ${index + 1}`);
+  value.setAttribute("aria-label", t(
+    isHeaders ? "header_value_label" : "parameter_value_label",
+    `${isHeaders ? "请求头" : "参数"}值 ${index + 1}`,
+    { index: index + 1 },
+  ));
   value.addEventListener("input", () => {
     item.value = value.value;
     markReplayDirty();
@@ -950,16 +1005,16 @@ function createPairRow(kind, item, index) {
 
   if (item.managed) {
     const managed = createElement("span", "managed-label");
-    managed.title = "由浏览器自动管理";
-    managed.setAttribute("aria-label", "由浏览器自动管理");
+    managed.title = t("browser_managed", "由浏览器自动管理");
+    managed.setAttribute("aria-label", t("browser_managed", "由浏览器自动管理"));
     managed.append(createSvgIcon("lock"));
     row.append(enabled, name, value, managed);
   } else {
     const remove = createElement("button", "mini-icon-button");
     remove.type = "button";
     remove.disabled = state.replay.sending;
-    remove.title = "删除此行";
-    remove.setAttribute("aria-label", `删除第 ${index + 1} 行`);
+    remove.title = t("delete_row", "删除此行");
+    remove.setAttribute("aria-label", t("delete_row_label", `删除第 ${index + 1} 行`, { index: index + 1 }));
     remove.append(createSvgIcon("trash"));
     remove.addEventListener("click", () => {
       const collection = isHeaders ? state.replay.draft.headers : state.replay.draft.params;
@@ -977,9 +1032,9 @@ function renderBodyEditor() {
   const draft = state.replay.draft;
   const section = createElement("section", "editor-section");
   const toolbar = createElement("div", "body-toolbar");
-  const modeLabel = createElement("label", "body-mode-label", "请求体格式");
+  const modeLabel = createElement("label", "body-mode-label", t("request_body_format", "请求体格式"));
   const select = createElement("select", "editor-select");
-  for (const [value, label] of [["json", "JSON"], ["form", "Form URL Encoded"], ["raw", "Raw 文本"]]) {
+  for (const [value, label] of [["json", "JSON"], ["form", "Form URL Encoded"], ["raw", t("raw_text", "Raw 文本")]]) {
     const option = document.createElement("option");
     option.value = value;
     option.textContent = label;
@@ -992,7 +1047,7 @@ function renderBodyEditor() {
   toolbar.append(modeLabel);
 
   if (draft.bodyMode === "json") {
-    const formatButton = createElement("button", "secondary-button", "格式化 JSON");
+    const formatButton = createElement("button", "secondary-button", t("format_json", "格式化 JSON"));
     formatButton.type = "button";
     formatButton.disabled = state.replay.sending || !draft.body.trim() || ["GET", "HEAD"].includes(draft.method);
     formatButton.addEventListener("click", formatReplayJson);
@@ -1001,15 +1056,19 @@ function renderBodyEditor() {
   section.append(toolbar);
 
   if (["GET", "HEAD"].includes(draft.method)) {
-    section.append(createElement("p", "editor-helper", `${draft.method} 请求不会发送请求体。切换请求方法后可以继续编辑。`));
+    section.append(createElement("p", "editor-helper", t(
+      "method_no_body",
+      `${draft.method} 请求不会发送请求体。切换请求方法后可以继续编辑。`,
+      { method: draft.method },
+    )));
   }
 
   if (draft.bodyMode === "form") {
     const list = createElement("div", "kv-list");
     draft.formFields.forEach((item, index) => list.append(createFormRow(item, index)));
-    if (!draft.formFields.length) list.append(createElement("p", "empty-editor-note", "请求体中没有表单字段。"));
+    if (!draft.formFields.length) list.append(createElement("p", "empty-editor-note", t("no_form_fields", "请求体中没有表单字段。")));
     section.append(list);
-    const add = createElement("button", "secondary-button add-row-button", "＋ 添加表单字段");
+    const add = createElement("button", "secondary-button add-row-button", t("add_form_field", "＋ 添加表单字段"));
     add.type = "button";
     add.disabled = state.replay.sending || ["GET", "HEAD"].includes(draft.method);
     add.addEventListener("click", () => {
@@ -1022,10 +1081,12 @@ function renderBodyEditor() {
     const textarea = createElement("textarea", "body-textarea");
     textarea.id = "replayBodyInput";
     textarea.value = draft.body;
-    textarea.placeholder = draft.bodyMode === "json" ? "输入 JSON 请求体" : "输入原始请求体";
+    textarea.placeholder = draft.bodyMode === "json"
+      ? t("json_body_placeholder", "输入 JSON 请求体")
+      : t("raw_body_placeholder", "输入原始请求体");
     textarea.spellcheck = false;
     textarea.disabled = state.replay.sending || ["GET", "HEAD"].includes(draft.method);
-    textarea.setAttribute("aria-label", "请求体内容");
+    textarea.setAttribute("aria-label", t("request_body_content", "请求体内容"));
     textarea.setAttribute("aria-describedby", "replayBodyError");
     textarea.addEventListener("input", () => {
       draft.body = textarea.value;
@@ -1053,25 +1114,25 @@ function createFormRow(item, index) {
   enabled.className = "kv-enabled";
   enabled.checked = item.enabled;
   enabled.disabled = state.replay.sending;
-  enabled.setAttribute("aria-label", `表单字段 ${index + 1} 是否随请求发送`);
+  enabled.setAttribute("aria-label", t("form_field_send_label", `表单字段 ${index + 1} 是否随请求发送`, { index: index + 1 }));
   enabled.addEventListener("change", () => { item.enabled = enabled.checked; markReplayDirty(); renderReplayEditor(); });
   const name = createElement("input", "kv-input");
   name.value = item.name;
-  name.placeholder = "名称";
+  name.placeholder = t("name", "名称");
   name.disabled = state.replay.sending;
-  name.setAttribute("aria-label", `表单字段名称 ${index + 1}`);
+  name.setAttribute("aria-label", t("form_field_name_label", `表单字段名称 ${index + 1}`, { index: index + 1 }));
   name.addEventListener("input", () => { item.name = name.value; markReplayDirty(); });
   const value = createElement("input", "kv-input");
   value.value = item.value;
-  value.placeholder = "值";
+  value.placeholder = t("value", "值");
   value.disabled = state.replay.sending;
-  value.setAttribute("aria-label", `表单字段值 ${index + 1}`);
+  value.setAttribute("aria-label", t("form_field_value_label", `表单字段值 ${index + 1}`, { index: index + 1 }));
   value.addEventListener("input", () => { item.value = value.value; markReplayDirty(); });
   const remove = createElement("button", "mini-icon-button");
   remove.type = "button";
   remove.disabled = state.replay.sending;
-  remove.title = "删除此行";
-  remove.setAttribute("aria-label", `删除第 ${index + 1} 个表单字段`);
+  remove.title = t("delete_row", "删除此行");
+  remove.setAttribute("aria-label", t("delete_form_field", `删除第 ${index + 1} 个表单字段`, { index: index + 1 }));
   remove.append(createSvgIcon("trash"));
   remove.addEventListener("click", () => { state.replay.draft.formFields.splice(index, 1); markReplayDirty(); renderReplayEditor(); });
   row.append(enabled, name, value, remove);
@@ -1082,15 +1143,17 @@ function renderReplayResponse() {
   const result = state.replay.result;
   const section = createElement("section", "editor-section response-section");
   if (!result) {
-    section.append(createElement("p", "empty-editor-note", state.replay.sending ? "正在等待响应…" : "发送请求后可在这里查看响应。"));
+    section.append(createElement("p", "empty-editor-note", state.replay.sending
+      ? t("waiting_for_replay", "正在等待响应…")
+      : t("replay_response_hint", "发送请求后可在这里查看响应。")));
     elements.replayEditorPanel.replaceChildren(section);
     return;
   }
   if (!result.ok) {
     section.append(
-      createElement("strong", "", "请求失败"),
-      createElement("div", "response-error", result.error || "页面未能完成此请求。"),
-      createElement("p", "editor-helper", `耗时 ${formatDuration(result.duration)}`),
+      createElement("strong", "", t("request_failed", "请求失败")),
+      createElement("div", "response-error", result.error || t("page_request_failed", "页面未能完成此请求。")),
+      createElement("p", "editor-helper", t("duration_label", `耗时 ${formatDuration(result.duration)}`, { duration: formatDuration(result.duration) })),
     );
     elements.replayEditorPanel.replaceChildren(section);
     return;
@@ -1098,25 +1161,33 @@ function renderReplayResponse() {
 
   const summary = createElement("div", "response-summary");
   summary.append(
-    responseStat("状态", `${result.status} ${result.statusText || ""}`.trim(), statusClass({ status: result.status })),
-    responseStat("耗时", formatDuration(result.duration)),
-    responseStat("大小", formatBytes(result.size)),
+    responseStat(t("status", "状态"), `${result.status} ${result.statusText || ""}`.trim(), statusClass({ status: result.status })),
+    responseStat(t("duration", "耗时"), formatDuration(result.duration)),
+    responseStat(t("size", "大小"), formatBytes(result.size)),
   );
   section.append(summary);
-  if (result.redirected) section.append(createElement("p", "editor-helper", `请求发生了重定向，最终 URL：${result.url}`));
+  if (result.redirected) section.append(createElement("p", "editor-helper", t(
+    "redirected_to",
+    `请求发生了重定向，最终 URL：${result.url}`,
+    { url: result.url },
+  )));
 
   const toolbar = createElement("div", "response-toolbar");
-  for (const [value, label] of [["body", "响应体"], ["headers", "响应头"], ["overview", "概览"]]) {
+  for (const [value, label] of [
+    ["body", t("response_body", "响应体")],
+    ["headers", t("response_headers", "响应头")],
+    ["overview", t("overview", "概览")],
+  ]) {
     const button = createElement("button", state.replay.resultTab === value ? "active" : "", label);
     button.type = "button";
     button.addEventListener("click", () => { state.replay.resultTab = value; renderReplayResponse(); });
     toolbar.append(button);
   }
-  const copy = createElement("button", "", "复制当前内容");
+  const copy = createElement("button", "", t("copy_current_content", "复制当前内容"));
   copy.type = "button";
   copy.addEventListener("click", () => {
     const content = replayResultContent();
-    if (content) void copyText(content, "已复制重放结果");
+    if (content) void copyText(content, t("copied_replay_result", "已复制重放结果"));
   });
   toolbar.append(copy);
   section.append(toolbar, createElement("pre", "response-code", replayResultContent()));
@@ -1146,9 +1217,9 @@ function replayResultContent() {
       redirected: Boolean(result.redirected),
     });
   }
-  if (result.bodyState === "too-large") return "响应体超过设置中的大小上限，未在重放结果中保存。";
-  if (result.bodyState === "binary") return "响应为二进制内容，当前版本不直接预览。";
-  if (!result.body) return "响应体为空。";
+  if (result.bodyState === "too-large") return t("replay_response_too_large", "响应体超过设置中的大小上限，未在重放结果中保存。");
+  if (result.bodyState === "binary") return t("binary_response_no_preview", "响应为二进制内容，当前版本不直接预览。");
+  if (!result.body) return t("empty_response_body", "响应体为空。");
   return prettyBody(result.body, result.contentType).value;
 }
 
@@ -1157,10 +1228,12 @@ function renderReplayActions() {
   elements.replayResetButton.disabled = sending;
   elements.replayCancelButton.classList.toggle("hidden", !sending);
   elements.replayCancelButton.disabled = false;
-  elements.replayCancelButton.textContent = "取消";
+  elements.replayCancelButton.textContent = t("cancel", "取消");
   elements.replaySendButton.disabled = sending || state.captureStatus === "error" || state.captureStatus === "detached";
   elements.replaySendButton.setAttribute("aria-busy", String(sending));
-  elements.replaySendButton.querySelector("span").textContent = sending ? "发送中…" : (state.replay.result ? "再次发送" : "发送请求");
+  elements.replaySendButton.querySelector("span").textContent = sending
+    ? t("sending", "发送中…")
+    : (state.replay.result ? t("send_again", "再次发送") : t("send_request", "发送请求"));
 }
 
 async function submitReplay() {
@@ -1173,7 +1246,7 @@ async function submitReplay() {
 
   const parsed = parseReplayUrl(draft.url);
   const errors = [];
-  if (!parsed) errors.push("请输入有效的 HTTP 或 HTTPS URL。");
+  if (!parsed) errors.push(t("invalid_http_url", "请输入有效的 HTTP 或 HTTPS URL。"));
   const bodyError = validateReplayBody();
   if (bodyError) errors.push(bodyError);
   const headerError = validateReplayHeaders(draft.headers);
@@ -1193,8 +1266,8 @@ async function submitReplay() {
     const target = targetUrl.host;
     const needsConfirmation = draft.method === "DELETE" || !confirmedReplayOrigins.has(targetUrl.origin);
     const description = draft.method === "DELETE"
-      ? `DELETE 请求可能删除数据。确定要向 ${target} 发送吗？`
-      : `${draft.method} 请求可能修改网站数据。确定要向 ${target} 发送吗？`;
+      ? t("confirm_delete", `DELETE 请求可能删除数据。确定要向 ${target} 发送吗？`, { target })
+      : t("confirm_modify", `${draft.method} 请求可能修改网站数据。确定要向 ${target} 发送吗？`, { method: draft.method, target });
     if (needsConfirmation && !window.confirm(description)) return;
     if (draft.method !== "DELETE") confirmedReplayOrigins.add(targetUrl.origin);
   }
@@ -1221,7 +1294,7 @@ async function submitReplay() {
 function cancelReplayRequest() {
   if (!state.replay.sending || !state.replay.replayId) return;
   elements.replayCancelButton.disabled = true;
-  elements.replayCancelButton.textContent = "正在取消…";
+  elements.replayCancelButton.textContent = t("canceling", "正在取消…");
   send({ type: "cancel-replay", replayId: state.replay.replayId });
 }
 
@@ -1260,7 +1333,7 @@ function formatReplayJson() {
     clearReplayErrors();
     renderReplayEditor();
   } catch {
-    elements.replayErrorSummary.textContent = "请求体不是有效的 JSON，无法格式化。";
+    elements.replayErrorSummary.textContent = t("invalid_json_format", "请求体不是有效的 JSON，无法格式化。");
     elements.replayErrorSummary.classList.remove("hidden");
     elements.replayErrorSummary.focus();
   }
@@ -1269,7 +1342,9 @@ function formatReplayJson() {
 function validateReplayBody() {
   const draft = state.replay.draft;
   if (!draft || draft.bodyMode !== "json" || !draft.body.trim() || ["GET", "HEAD"].includes(draft.method)) return "";
-  try { JSON.parse(draft.body); return ""; } catch (error) { return `JSON 请求体格式错误：${error.message}`; }
+  try { JSON.parse(draft.body); return ""; } catch (error) {
+    return t("json_body_error", `JSON 请求体格式错误：${error.message}`, { error: error.message });
+  }
 }
 
 function validateReplayHeaders(headers) {
@@ -1281,7 +1356,7 @@ function validateReplayHeaders(headers) {
     }
     return "";
   } catch (error) {
-    return `请求头格式错误：${error.message}`;
+    return t("header_format_error", `请求头格式错误：${error.message}`, { error: error.message });
   }
 }
 
@@ -1317,7 +1392,7 @@ function syncUrlFromParams() {
     clearReplayErrors();
     renderReplayCounts();
   } catch {
-    showReplayUrlError("请先修正 URL，再编辑查询参数。");
+    showReplayUrlError(t("fix_url_before_params", "请先修正 URL，再编辑查询参数。"));
   }
 }
 
@@ -1403,26 +1478,26 @@ function createSvgIcon(name) {
 
 function renderStatus() {
   const labels = {
-    connecting: "连接中",
-    capturing: "捕获中",
-    paused: "已暂停",
-    error: "连接失败",
-    detached: "已断开",
+    connecting: t("status_connecting", "连接中"),
+    capturing: t("status_capturing", "捕获中"),
+    paused: t("status_paused", "已暂停"),
+    error: t("status_error", "连接失败"),
+    detached: t("status_detached", "已断开"),
   };
-  elements.captureLabel.textContent = labels[state.captureStatus] || "连接中";
+  elements.captureLabel.textContent = labels[state.captureStatus] || t("status_connecting", "连接中");
   elements.captureButton.classList.toggle("paused", state.captureStatus === "paused");
   elements.captureButton.classList.toggle("error", state.captureStatus === "error" || state.captureStatus === "detached");
   elements.captureButton.setAttribute("aria-pressed", String(state.capturing));
   elements.captureButton.title = state.captureStatus === "error" || state.captureStatus === "detached"
-    ? "重新连接"
-    : state.capturing ? "暂停捕获" : "继续捕获";
+    ? t("reconnect", "重新连接")
+    : state.capturing ? t("pause_capture", "暂停捕获") : t("resume_capture", "继续捕获");
 }
 
 function renderPage(page) {
   if (!page) return;
   const url = typeof page === "string" ? page : page.url;
   const label = compactUrl(url || "");
-  elements.pageUrl.textContent = label || "无法读取当前页面";
+  elements.pageUrl.textContent = label || t("cannot_read_current_page", "无法读取当前页面");
   elements.pageUrl.title = url || "";
 }
 
@@ -1444,7 +1519,7 @@ async function copyText(value, successMessage) {
     await navigator.clipboard.writeText(value);
     showToast(successMessage);
   } catch {
-    showToast("复制失败，请在 Chrome 设置中允许剪贴板权限。", true);
+    showToast(t("copy_permission_error", "复制失败，请在 Chrome 设置中允许剪贴板权限。"), true);
   }
 }
 
@@ -1474,12 +1549,12 @@ function prettyBody(value, mimeType = "") {
   const trimmed = String(value).trim();
   try {
     const parsed = JSON.parse(trimmed);
-    return { format: "JSON · 格式化", value: JSON.stringify(parsed, null, 2) };
+    return { format: t("json_formatted", "JSON · 格式化"), value: JSON.stringify(parsed, null, 2) };
   } catch {
-    if (mimeType.includes("html") || /^<!doctype|^<html/i.test(trimmed)) return { format: "HTML · 文本", value: String(value) };
-    if (mimeType.includes("xml") || /^<\?xml/i.test(trimmed)) return { format: "XML · 文本", value: String(value) };
-    if (mimeType.includes("javascript")) return { format: "JavaScript · 文本", value: String(value) };
-    return { format: "文本", value: String(value) };
+    if (mimeType.includes("html") || /^<!doctype|^<html/i.test(trimmed)) return { format: t("html_text", "HTML · 文本"), value: String(value) };
+    if (mimeType.includes("xml") || /^<\?xml/i.test(trimmed)) return { format: t("xml_text", "XML · 文本"), value: String(value) };
+    if (mimeType.includes("javascript")) return { format: t("javascript_text", "JavaScript · 文本"), value: String(value) };
+    return { format: t("text", "文本"), value: String(value) };
   }
 }
 
@@ -1536,7 +1611,22 @@ function formatBytes(bytes) {
 }
 
 function requestAriaLabel(request) {
-  const status = request.failed ? "失败" : request.status ? `状态 ${request.status}` : "等待响应";
-  const origin = request.replayed ? "重放请求，" : "";
-  return `${origin}${request.method} ${displayPath(request.url)}，${status}，${formatDuration(request.duration)}，${formatBytes(request.size)}`;
+  const status = request.failed
+    ? t("failed", "失败")
+    : request.status
+      ? t("status_number", `状态 ${request.status}`, { status: request.status })
+      : t("waiting_for_response", "等待响应");
+  const origin = request.replayed ? t("replayed_prefix", "重放请求，") : "";
+  return t(
+    "request_aria_description",
+    `${origin}${request.method} ${displayPath(request.url)}，${status}，${formatDuration(request.duration)}，${formatBytes(request.size)}`,
+    {
+      origin,
+      method: request.method,
+      path: displayPath(request.url),
+      status,
+      duration: formatDuration(request.duration),
+      size: formatBytes(request.size),
+    },
+  );
 }

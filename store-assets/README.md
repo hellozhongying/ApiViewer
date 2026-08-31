@@ -10,6 +10,7 @@
 文件说明：
 
 - `store-listing-zh-CN.md`：商店名称、摘要、详细描述和分类建议。
+- `store-listing-en.md`：英文商店名称、摘要、详细描述和分类建议。
 - `privacy-practices.md`：单一用途、权限理由、远程代码和数据类型声明。
 - `test-instructions.md`：提供给 Chrome 审核人员的测试步骤。
 - `publishing-checklist.md`：从上传到发布的逐项检查表。

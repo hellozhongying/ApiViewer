@@ -17,13 +17,17 @@ const runtimeFiles = [
   "sidepanel.js",
   "json-formatter.js",
   "privacy.html",
+  "privacy-en.html",
   "privacy.css",
+  "_locales",
   "icons",
 ];
 
 for (const file of [
   "privacy.html",
+  "privacy-en.html",
   "store-assets/README.md",
+  "store-assets/store-listing-en.md",
   "store-assets/store-listing-zh-CN.md",
   "store-assets/privacy-practices.md",
   "store-assets/publishing-checklist.md",
